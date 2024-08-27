@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteador de Brincadeiras - Roleta</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Sorteador de Brincadeiras - Roleta</h1>
+        <div class="roleta-container">
+            <div id="roleta"></div>
+        </div>
+        <button id="girar-btn">Girar Roleta</button>
+        <div id="resultado"></div>
+        <div id="descricao"></div>
+        <!-- <img id="brincadeira-imagem" src="" alt="Imagem da brincadeira"> -->
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

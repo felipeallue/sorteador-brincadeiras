@@ -1,0 +1,35 @@
+name: Build and Test Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker image
+        run: docker build -t sorteador_roleta .
+
+      - name: Run container to test
+        run: docker run -d -p 5000:5000 sorteador_roleta
+
+      - name: Wait for container to be ready
+        run: sleep 10
+
+      - name: Test application
+        run: curl --fail http://localhost:5000 || exit 1
+
+      - name: Stop running container
+        run: docker stop $(docker ps -q)
