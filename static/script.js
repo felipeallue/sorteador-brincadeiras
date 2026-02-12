@@ -16,7 +16,6 @@ document.getElementById('girar-btn').addEventListener('click', () => {
             .then(brincadeira => {
                 document.getElementById('resultado').textContent = `Brincadeira sorteada: ${brincadeira.nome}`;
                 document.getElementById('descricao').textContent = `Descrição: ${brincadeira.descricao}`;
-                // document.getElementById('brincadeira-imagem').src = brincadeira.imagem;
             })
             .catch(error => {
                 console.error('Erro ao sortear brincadeira:', error);
