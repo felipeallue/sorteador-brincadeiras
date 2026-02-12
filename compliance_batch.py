@@ -3,6 +3,10 @@ Compliance Batch Module for Third-Party Service Invoices
 Handles batch assembly for integration with BRHUB and SuiteApps systems.
 """
 
+# Constants
+THIRD_PARTY_SERVICE_INVOICE_TYPE = 24  # tipoobjintegr_id for third-party service invoices
+VALID_DOCUMENT_STATUS = '00'  # sitdocto value for non-cancelled invoices
+
 
 class ComplianceBatchBuilder:
     """Base class for building compliance batches for fiscal invoice integration."""
@@ -15,8 +19,8 @@ class ComplianceBatchBuilder:
             integration_model: The integration model type ('BRHUB' or 'SuiteApps')
         """
         self.integration_model = integration_model
-        self.tipoobjintegr_id = 24  # Third-party service invoices
-        self.valid_sitdocto = '00'  # Valid document status (non-cancelled)
+        self.tipoobjintegr_id = THIRD_PARTY_SERVICE_INVOICE_TYPE
+        self.valid_sitdocto = VALID_DOCUMENT_STATUS
     
     def build_query(self):
         """
