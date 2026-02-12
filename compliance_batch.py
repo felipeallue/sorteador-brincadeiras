@@ -16,6 +16,7 @@ class ComplianceBatchBuilder:
         """
         self.integration_model = integration_model
         self.tipoobjintegr_id = 24  # Third-party service invoices
+        self.valid_sitdocto = '00'  # Valid document status (non-cancelled)
     
     def build_query(self):
         """
@@ -26,9 +27,28 @@ class ComplianceBatchBuilder:
         - Filter for sitdocto = '00' (exclude cancelled invoices)
         
         Returns:
-            str: SQL query string
+            tuple: (query_string, parameters) for use with parameterized queries
         """
-        raise NotImplementedError("Subclasses must implement build_query method")
+        query = """
+        SELECT 
+            nfs.id,
+            nfs.numero_nota,
+            nfs.data_emissao,
+            nfs.valor_total,
+            nfs.prestador_id,
+            nfs.tomador_id,
+            nfs.sitdocto,
+            nfs.tipoobjintegr_id
+        FROM 
+            nota_fiscal_servico nfs
+        WHERE 
+            nfs.tipoobjintegr_id = ?
+            AND nfs.sitdocto = ?
+        ORDER BY 
+            nfs.data_emissao DESC
+        """
+        parameters = (self.tipoobjintegr_id, self.valid_sitdocto)
+        return query.strip(), parameters
 
 
 class BRHUBComplianceBatch(ComplianceBatchBuilder):
@@ -36,33 +56,6 @@ class BRHUBComplianceBatch(ComplianceBatchBuilder):
     
     def __init__(self):
         super().__init__('BRHUB')
-    
-    def build_query(self):
-        """
-        Build SQL query for BRHUB integration.
-        
-        Returns:
-            str: SQL query with proper filters including sitdocto = '00'
-        """
-        query = f"""
-        SELECT 
-            nfs.id,
-            nfs.numero_nota,
-            nfs.data_emissao,
-            nfs.valor_total,
-            nfs.prestador_id,
-            nfs.tomador_id,
-            nfs.sitdocto,
-            nfs.tipoobjintegr_id
-        FROM 
-            nota_fiscal_servico nfs
-        WHERE 
-            nfs.tipoobjintegr_id = {self.tipoobjintegr_id}
-            AND nfs.sitdocto = '00'
-        ORDER BY 
-            nfs.data_emissao DESC
-        """
-        return query.strip()
 
 
 class SuiteAppsComplianceBatch(ComplianceBatchBuilder):
@@ -70,33 +63,6 @@ class SuiteAppsComplianceBatch(ComplianceBatchBuilder):
     
     def __init__(self):
         super().__init__('SuiteApps')
-    
-    def build_query(self):
-        """
-        Build SQL query for SuiteApps integration.
-        
-        Returns:
-            str: SQL query with proper filters including sitdocto = '00'
-        """
-        query = f"""
-        SELECT 
-            nfs.id,
-            nfs.numero_nota,
-            nfs.data_emissao,
-            nfs.valor_total,
-            nfs.prestador_id,
-            nfs.tomador_id,
-            nfs.sitdocto,
-            nfs.tipoobjintegr_id
-        FROM 
-            nota_fiscal_servico nfs
-        WHERE 
-            nfs.tipoobjintegr_id = {self.tipoobjintegr_id}
-            AND nfs.sitdocto = '00'
-        ORDER BY 
-            nfs.data_emissao DESC
-        """
-        return query.strip()
 
 
 def get_compliance_batch_builder(integration_model):

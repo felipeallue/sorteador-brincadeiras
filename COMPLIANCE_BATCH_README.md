@@ -19,21 +19,24 @@ Added the SQL clause `AND sitdocto = '00'` to the SELECT queries that fetch invo
 ### Files Created
 
 1. **compliance_batch.py** - Core module containing:
-   - `ComplianceBatchBuilder`: Base class for compliance batch builders
+   - `ComplianceBatchBuilder`: Base class for compliance batch builders with shared query logic
    - `BRHUBComplianceBatch`: BRHUB integration implementation
    - `SuiteAppsComplianceBatch`: SuiteApps integration implementation
    - `get_compliance_batch_builder()`: Factory function to get the appropriate builder
+   - **Security**: Uses parameterized queries to prevent SQL injection
 
 2. **test_compliance_batch.py** - Comprehensive test suite:
-   - 15 unit tests validating the implementation
+   - 21 unit tests validating the implementation
    - Tests for both BRHUB and SuiteApps models
    - Validates presence of required filters
+   - Tests parameterized query structure
    - All tests passing ✓
 
 3. **demo_compliance_batch.py** - Demonstration script:
    - Shows the generated SQL queries
    - Highlights the key features
    - Displays the sitdocto filter in action
+   - Shows secure parameterized query usage
 
 ## SQL Query Structure
 
@@ -52,16 +55,24 @@ SELECT
 FROM 
     nota_fiscal_servico nfs
 WHERE 
-    nfs.tipoobjintegr_id = 24
-    AND nfs.sitdocto = '00'
+    nfs.tipoobjintegr_id = ?
+    AND nfs.sitdocto = ?
 ORDER BY 
     nfs.data_emissao DESC
 ```
 
+**Parameters**: `(24, '00')`
+
 ### Key Filters
 
-1. **tipoobjintegr_id = 24**: Selects only third-party service invoices
-2. **sitdocto = '00'**: Excludes cancelled invoices (only includes valid invoices)
+1. **tipoobjintegr_id = ?**: Selects only third-party service invoices (parameter: 24)
+2. **sitdocto = ?**: Excludes cancelled invoices (parameter: '00' = valid invoices only)
+
+### Security Features
+
+- **Parameterized queries**: All SQL queries use placeholders (?) instead of direct value interpolation
+- **SQL injection prevention**: Parameters are passed separately from the query string
+- **No code duplication**: Common query logic is in the base class
 
 ## Usage
 
@@ -70,11 +81,19 @@ from compliance_batch import get_compliance_batch_builder
 
 # Get BRHUB builder
 brhub_builder = get_compliance_batch_builder('BRHUB')
-brhub_query = brhub_builder.build_query()
+query, params = brhub_builder.build_query()
+# Execute with: cursor.execute(query, params)
 
 # Get SuiteApps builder
 suiteapps_builder = get_compliance_batch_builder('SuiteApps')
-suiteapps_query = suiteapps_builder.build_query()
+query, params = suiteapps_builder.build_query()
+# Execute with: cursor.execute(query, params)
+```
+
+**Important**: Always use the parameterized query format:
+```python
+cursor.execute(query, params)  # Secure
+# NOT: cursor.execute(query % params)  # Insecure!
 ```
 
 ## Testing
@@ -97,11 +116,15 @@ python demo_compliance_batch.py
 
 ## Validation
 
-All 15 unit tests pass, confirming:
+All 21 unit tests pass, confirming:
 - ✓ Correct integration model identification
 - ✓ Correct tipoobjintegr_id value (24)
-- ✓ Presence of sitdocto = '00' filter
-- ✓ Presence of tipoobjintegr_id = 24 filter
+- ✓ Correct valid_sitdocto value ('00')
+- ✓ Query returns tuple (query, parameters)
+- ✓ Presence of parameterized sitdocto filter
+- ✓ Presence of parameterized tipoobjintegr_id filter
 - ✓ Correct table name (nota_fiscal_servico)
 - ✓ Proper AND clause combining both filters
+- ✓ Correct parameter order in tuple
 - ✓ Factory function returns correct builder types
+- ✓ No SQL injection vulnerabilities (parameterized queries)
